@@ -47,14 +47,12 @@ SetupPage {
                         property alias motorSlider: slider
 
                         Timer {
-                            interval:       250
+                            interval:       200
                             running:        true
                             repeat:         true
 
-                            property real _lastValue: 0
-
                             onTriggered: {
-                                if (_lastValue !== slider.value) {
+                                if (safetySwitch.checked) {
                                     controller.vehicle.motorTest(index + 1, slider.value, 1)
                                 }
                             }
@@ -123,6 +121,7 @@ SetupPage {
                         if (!checked) {
                             for (var sliderIndex=0; sliderIndex<sliderRepeater.count; sliderIndex++) {
                                 sliderRepeater.itemAt(sliderIndex).motorSlider.value = 0
+                                controller.vehicle.motorTest(sliderIndex + 1, 0, 1)
                             }
                             allSlider.value = 0
                         }
