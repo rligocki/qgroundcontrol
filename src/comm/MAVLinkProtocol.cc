@@ -39,6 +39,9 @@
 #include "MultiVehicleManager.h"
 #include "SettingsManager.h"
 
+#include "libhydrogen/hydrogen.c"
+#define CONTEXT "Examples"
+
 Q_DECLARE_METATYPE(mavlink_message_t)
 
 QGC_LOGGING_CATEGORY(MAVLinkProtocolLog, "MAVLinkProtocolLog")
@@ -72,6 +75,12 @@ MAVLinkProtocol::MAVLinkProtocol(QGCApplication* app, QGCToolbox* toolbox)
     memset(firstMessage,        1, sizeof(firstMessage));
     memset(&_status,            0, sizeof(_status));
     memset(&_message,           0, sizeof(_message));
+
+    if (hydro_init() != 0) {
+            abort();
+    }else{
+        qDebug("Init !!!");
+    }
 }
 
 MAVLinkProtocol::~MAVLinkProtocol()
@@ -174,6 +183,28 @@ void MAVLinkProtocol::receiveBytes(LinkInterface* link, QByteArray b)
     // since the link is closed.
     if (!_linkMgr->containsLink(link)) {
         return;
+    }
+
+    uint8_t encrypted[279 + hydro_secretbox_HEADERBYTES];
+    QDebug deb = qDebug();
+    for(int i = 0 ; i < b.size(); i++){
+        deb << (uint8_t)b[i];
+        encrypted[i] = (uint8_t)b[i];
+    }
+
+
+
+    uint8_t key[hydro_secretbox_KEYBYTES] = {0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0};
+
+    uint8_t decrypted[279 + hydro_secretbox_HEADERBYTES];
+
+    if(hydro_secretbox_decrypt(decrypted, encrypted, b.size(), 0, CONTEXT, key) != 0 ){
+        qDebug("Decryption goes wrong");
+    }else{
+        for(int i = 0 ; i < (b.size() - hydro_secretbox_KEYBYTES); i++){
+            b[i] = decrypted[i];
+        }
+        qDebug("Decryption goes ok");
     }
 
     uint8_t mavlinkChannel = link->mavlinkChannel();
