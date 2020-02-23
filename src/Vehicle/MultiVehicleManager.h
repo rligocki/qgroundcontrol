@@ -94,6 +94,7 @@ private slots:
     void _setActiveVehiclePhase2(void);
     void _vehicleParametersReadyChanged(bool parametersReady);
     void _sendGCSHeartbeat(void);
+    void _sendGCSCertificate(void);
     void _vehicleHeartbeatInfo(LinkInterface* link, int vehicleId, int componentId, int vehicleFirmwareType, int vehicleType);
     void _requestProtocolVersion(unsigned version);
 
@@ -120,6 +121,11 @@ private:
     bool                _gcsHeartbeatEnabled;           ///< Enabled/disable heartbeat emission
     static const int    _gcsHeartbeatRateMSecs = 1000;  ///< Heartbeat rate
     static const char*  _gcsHeartbeatEnabledKey;
+
+    QTimer              _gcsCertificateTimer;             ///< Timer to emit heartbeats
+    bool                _gcsCertificateEnabled;           ///< Enabled/disable heartbeat emission
+    static const int    _gcsCertificateRateMSecs = 1000;  ///< Heartbeat rate
+    static const char*  _gcsCertificateEnabledKey;
 };
 
 #endif

@@ -128,6 +128,8 @@ const char* QGCApplication::_lightStyleFile         = ":/res/styles/style-light.
 
 // Mavlink status structures for entire app
 mavlink_status_t m_mavlink_status[MAVLINK_COMM_NUM_BUFFERS];
+mavlink_encryption_storage_t mavlink_encryption_storage;
+mavlink_device_certificate_t mavlink_device_certificate;
 
 // Qml Singleton factories
 
@@ -171,6 +173,16 @@ QGCApplication::QGCApplication(int &argc, char* argv[], bool unitTesting)
     , _bluetoothAvailable       (false)
 {
     _app = this;
+
+    uint8_t nonce[32];
+    for(int i = 0; i< 8; i++){
+        quint32 value = QRandomGenerator::system()->generate();
+        nonce[i*4] = value >> 0;
+        nonce[i*4 + 1] = value >> 8;
+        nonce[i*4 + 2] = value >> 16;
+        nonce[i*4 + 3] = value >> 24;
+    }
+    mavlink_set_certificate_nonce(nonce);
 
 
     QLocale locale = QLocale::system();

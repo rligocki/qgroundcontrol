@@ -18,9 +18,13 @@
 
 #define MAVLINK_USE_MESSAGE_INFO
 #define MAVLINK_EXTERNAL_RX_STATUS  // Single m_mavlink_status instance is in QGCApplication.cc
+#define MAVLINK_EXTERNAL_ENCRYPTION_STORAGE
+#define MAVLINK_EXTERNAL_DEVICE_CERTIFICATE
 #include <stddef.h>                 // Hack workaround for Mav 2.0 header problem with respect to offsetof usage
 #include <mavlink_types.h>
 extern mavlink_status_t m_mavlink_status[MAVLINK_COMM_NUM_BUFFERS];
+extern mavlink_encryption_storage_t mavlink_encryption_storage;
+extern mavlink_device_certificate_t mavlink_device_certificate;
 #include <mavlink.h>
 
 class QGCMAVLink {

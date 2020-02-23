@@ -24,10 +24,12 @@
 #endif
 
 #include <QQmlEngine>
+#include <QRandomGenerator>
 
 QGC_LOGGING_CATEGORY(MultiVehicleManagerLog, "MultiVehicleManagerLog")
 
 const char* MultiVehicleManager::_gcsHeartbeatEnabledKey = "gcsHeartbeatEnabled";
+const char* MultiVehicleManager::_gcsCertificateEnabledKey = "gcsCertificateEnabled";
 
 MultiVehicleManager::MultiVehicleManager(QGCApplication* app, QGCToolbox* toolbox)
     : QGCTool(app, toolbox)
@@ -39,6 +41,7 @@ MultiVehicleManager::MultiVehicleManager(QGCApplication* app, QGCToolbox* toolbo
     , _joystickManager(NULL)
     , _mavlinkProtocol(NULL)
     , _gcsHeartbeatEnabled(true)
+    , _gcsCertificateEnabled(true)
 {
     QSettings settings;
 
@@ -49,6 +52,15 @@ MultiVehicleManager::MultiVehicleManager(QGCApplication* app, QGCToolbox* toolbo
     connect(&_gcsHeartbeatTimer, &QTimer::timeout, this, &MultiVehicleManager::_sendGCSHeartbeat);
     if (_gcsHeartbeatEnabled) {
         _gcsHeartbeatTimer.start();
+    }
+
+    _gcsCertificateEnabled = settings.value(_gcsCertificateEnabledKey, true).toBool();
+
+    _gcsCertificateTimer.setInterval(_gcsCertificateRateMSecs);
+    _gcsCertificateTimer.setSingleShot(false);
+    connect(&_gcsCertificateTimer, &QTimer::timeout, this, &MultiVehicleManager::_sendGCSCertificate);
+    if (_gcsCertificateEnabled) {
+        _gcsCertificateTimer.start();
     }
 }
 
@@ -384,6 +396,42 @@ void MultiVehicleManager::_sendGCSHeartbeat(void)
     }
 }
 
+void MultiVehicleManager::_sendGCSCertificate(void)
+{
+    LinkManager* linkMgr = _toolbox->linkManager();
+    for (int i=0; i<linkMgr->links().count(); i++) {
+        LinkInterface* link = linkMgr->links()[i];
+        if (link->isConnected() && !link->highLatency()) {
+
+            mavlink_message_t message;
+
+            char path[] = "/Users/romanligocki/Documents/diplomka_working/build-qgroundcontrol-Desktop_Qt_5_11_0_clang_64bit-Debug/certificates/gcs.cert";
+
+            uint8_t nonce[32];
+            mavlink_get_certificate_nonce(nonce);
+
+            mavlink_read_certificate(path);
+            mavlink_device_certificate_t *certificate = mavlink_get_device_certificate();
+
+            mavlink_msg_certificate_pack_chan(_mavlinkProtocol->getSystemId(),
+                                            _mavlinkProtocol->getComponentId(),
+                                            link->mavlinkChannel(),
+                                            &message,
+                                            certificate->device_id,
+                                            certificate->device_name,
+                                            certificate->maintainer,
+                                            certificate->privileges,
+                                            certificate->public_key,
+                                            nonce,
+                                            certificate->sign);
+
+            uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
+            int len = mavlink_msg_to_send_buffer(buffer, &message);
+
+            link->writeBytesSafe((const char*)buffer, len);
+        }
+    }
+}
 bool MultiVehicleManager::linkInUse(LinkInterface* link, Vehicle* skipVehicle)
 {
     for (int i=0; i< _vehicles.count(); i++) {
