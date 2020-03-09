@@ -174,6 +174,9 @@ QGCApplication::QGCApplication(int &argc, char* argv[], bool unitTesting)
 {
     _app = this;
 
+    mavlink_set_force_encryption();
+    char path[] = "/Users/romanligocki/Documents/diplomka_working/build-qgroundcontrol-Desktop_Qt_5_11_0_clang_64bit-Debug/certificates/gcs.cert";
+    mavlink_read_certificate(path);
     uint8_t nonce[32];
     for(int i = 0; i< 8; i++){
         quint32 value = QRandomGenerator::system()->generate();

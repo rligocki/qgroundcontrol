@@ -403,14 +403,12 @@ void MultiVehicleManager::_sendGCSCertificate(void)
         LinkInterface* link = linkMgr->links()[i];
         if (link->isConnected() && !link->highLatency()) {
 
-            mavlink_message_t message;
 
-            char path[] = "/Users/romanligocki/Documents/diplomka_working/build-qgroundcontrol-Desktop_Qt_5_11_0_clang_64bit-Debug/certificates/gcs.cert";
+            mavlink_message_t message;
 
             uint8_t nonce[32];
             mavlink_get_certificate_nonce(nonce);
 
-            mavlink_read_certificate(path);
             mavlink_device_certificate_t *certificate = mavlink_get_device_certificate();
 
             mavlink_msg_certificate_pack_chan(_mavlinkProtocol->getSystemId(),
