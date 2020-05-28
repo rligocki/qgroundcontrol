@@ -72,6 +72,7 @@ MAVLinkProtocol::MAVLinkProtocol(QGCApplication* app, QGCToolbox* toolbox)
     memset(firstMessage,        1, sizeof(firstMessage));
     memset(&_status,            0, sizeof(_status));
     memset(&_message,           0, sizeof(_message));
+
 }
 
 MAVLinkProtocol::~MAVLinkProtocol()
@@ -273,12 +274,14 @@ void MAVLinkProtocol::receiveBytes(LinkInterface* link, QByteArray b)
                 }
             }
 
+
             if (_message.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
                 _startLogging();
                 mavlink_heartbeat_t heartbeat;
                 mavlink_msg_heartbeat_decode(&_message, &heartbeat);
                 emit vehicleHeartbeatInfo(link, _message.sysid, _message.compid, heartbeat.autopilot, heartbeat.type);
             }
+
 
             if (_message.msgid == MAVLINK_MSG_ID_CERTIFICATE) {
                 mavlink_certificate_t certificate_remote;
@@ -287,6 +290,7 @@ void MAVLinkProtocol::receiveBytes(LinkInterface* link, QByteArray b)
                 uint8_t nonce[32], nonce_xor[32], shared_key[32], shared_key_xor[32];
 
                 mavlink_get_certificate_nonce(nonce);
+
                 mavlink_device_certificate_t device_certificate_remote;
                 mavlink_device_certificate_t *device_certificate_local = mavlink_get_device_certificate();
 
@@ -298,6 +302,7 @@ void MAVLinkProtocol::receiveBytes(LinkInterface* link, QByteArray b)
                 memcpy(device_certificate_remote.sign, certificate_remote.sign, 64);
 
                 if(mavlink_check_certificate(&device_certificate_remote, device_certificate_local->public_key_auth) == 0){
+                    qDebug() << "Certificate is valid";
                     for(uint8_t i=0; i<32; ++i){
                         nonce_xor[i] = (nonce[i] ^ certificate_remote.nonce[i]);
                     }
@@ -307,10 +312,11 @@ void MAVLinkProtocol::receiveBytes(LinkInterface* link, QByteArray b)
                     for(uint8_t i=0; i<32; ++i){
                         shared_key_xor[i] = (nonce_xor[i] ^ shared_key[i]);
                     }
-
                     mavlink_set_encryption_key(shared_key_xor);
                 }
             }
+
+
             if (_message.msgid == MAVLINK_MSG_ID_HIGH_LATENCY2) {
                 _startLogging();
                 mavlink_high_latency2_t highLatency2;

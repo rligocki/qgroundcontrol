@@ -1940,6 +1940,14 @@ void Vehicle::_sendMessageOnLink(LinkInterface* link, mavlink_message_t message)
 
     // Write message into buffer, prepending start sign
     uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
+
+    uint8_t nonce[24];
+    for(int i = 0; i< 8; i++){
+        quint32 value = QRandomGenerator::system()->generate();
+        message.nonce[i*4] = value >> 0;
+        message.nonce[i*4 + 1] = value >> 8;
+        message.nonce[i*4 + 2] = value >> 16;
+    }
     int len = mavlink_msg_to_send_buffer(buffer, &message);
 
     link->writeBytesSafe((const char*)buffer, len);

@@ -54,6 +54,7 @@ ParameterManager::ParameterManager(Vehicle* vehicle)
     , _indexBatchQueueActive            (false)
     , _totalParamCount                  (0)
 {
+    
     _versionParam = vehicle->firmwarePlugin()->getVersionParam();
 
     if (_vehicle->isOfflineEditingVehicle()) {

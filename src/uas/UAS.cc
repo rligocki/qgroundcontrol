@@ -126,11 +126,9 @@ UAS::UAS(MAVLinkProtocol* protocol, Vehicle* vehicle, FirmwarePluginManager * fi
     _vehicle(vehicle),
     _firmwarePluginManager(firmwarePluginManager)
 {
-
 #ifndef __mobile__
     connect(_vehicle, &Vehicle::mavlinkMessageReceived, &fileManager, &FileManager::receiveMessage);
 #endif
-
 }
 
 /**

@@ -19,6 +19,7 @@
 #include "QGCCorePlugin.h"
 #include "QGCOptions.h"
 
+
 #if defined (__ios__) || defined(__android__)
 #include "MobileScreenMgr.h"
 #endif
@@ -62,6 +63,8 @@ MultiVehicleManager::MultiVehicleManager(QGCApplication* app, QGCToolbox* toolbo
     if (_gcsCertificateEnabled) {
         _gcsCertificateTimer.start();
     }
+
+
 }
 
 void MultiVehicleManager::setToolbox(QGCToolbox *toolbox)
@@ -430,6 +433,7 @@ void MultiVehicleManager::_sendGCSCertificate(void)
         }
     }
 }
+
 bool MultiVehicleManager::linkInUse(LinkInterface* link, Vehicle* skipVehicle)
 {
     for (int i=0; i< _vehicles.count(); i++) {
